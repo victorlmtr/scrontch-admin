@@ -13,6 +13,7 @@ const AdminDashboard = () => {
     description: "",
     image: "",
     categoryid: "",
+    substitutes: [], // Track substitutes here
   });
 
   useEffect(() => {
@@ -51,6 +52,7 @@ const AdminDashboard = () => {
       description: ingredient.description,
       image: ingredient.image,
       categoryid: ingredient.categoryid,
+      substitutes: ingredient.substitutes || [], // Add current substitutes to the form
     });
   };
 
@@ -64,7 +66,7 @@ const AdminDashboard = () => {
   };
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0]; // Get the file from the input
+    const file = e.target.files[0];
     if (!file) {
       alert("No file selected.");
       return;
@@ -84,36 +86,25 @@ const AdminDashboard = () => {
         }
       );
 
-      console.log("Upload response:", response);
-
       if (response.status === 200) {
         const fileUrl = response.data.url; // Check the API for the correct key
+        setFormData((prev) => ({ ...prev, image: fileUrl }));
         alert("Image uploaded successfully!");
-        console.log("Uploaded file URL:", fileUrl);
       } else {
-        console.error("Upload failed:", response);
         alert(`Failed to upload image: ${response.statusText}`);
       }
     } catch (error) {
-      console.error("Error during image upload:", error);
-
-      if (error.response) {
-        // Server error
-        console.error("Server responded with:", error.response.data);
-        alert(
-          `Server Error: ${error.response.data.message || "Upload failed"}`
-        );
-      } else if (error.request) {
-        // No response received
-        console.error("No response received:", error.request);
-        alert(
-          "No response received from the server. Check network or server status."
-        );
-      } else {
-        // Other errors
-        alert(`Unexpected error: ${error.message}`);
-      }
+      alert("Error during image upload.");
     }
+  };
+
+  const handleSubstituteToggle = (substituteId) => {
+    setFormData((prev) => {
+      const substitutes = prev.substitutes.includes(substituteId)
+        ? prev.substitutes.filter((id) => id !== substituteId)
+        : [...prev.substitutes, substituteId];
+      return { ...prev, substitutes };
+    });
   };
 
   const handleFormSubmit = async (e) => {
@@ -219,6 +210,33 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Ingredient Substitutes Section */}
+            <div className="mb-3">
+              <label htmlFor="substitutes" className="form-label">
+                Substitutes
+              </label>
+              <div>
+                {substitutes.map((substitute) => (
+                  <div key={substitute.id} className="form-check">
+                    <input
+                      type="checkbox"
+                      id={`substitute-${substitute.id}`}
+                      className="form-check-input"
+                      checked={formData.substitutes.includes(substitute.id)}
+                      onChange={() => handleSubstituteToggle(substitute.id)}
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor={`substitute-${substitute.id}`}
+                    >
+                      {substitute.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <button type="submit" className="btn btn-primary">
               Save Changes
             </button>
@@ -240,9 +258,8 @@ const AdminDashboard = () => {
             <th>Name</th>
             <th>Description</th>
             <th>Image</th>
-            <th>Created At</th>
-            <th>Updated At</th>
             <th>Category</th>
+            <th>Substitutes</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -263,17 +280,14 @@ const AdminDashboard = () => {
                   "No image"
                 )}
               </td>
-              <td>
-                {ingredient.createdat
-                  ? new Date(ingredient.createdat).toLocaleString()
-                  : "N/A"}
-              </td>
-              <td>
-                {ingredient.updatedat
-                  ? new Date(ingredient.updatedat).toLocaleString()
-                  : "N/A"}
-              </td>
               <td>{getCategoryName(ingredient.categoryid)}</td>
+              <td>
+                {ingredient.substitutes && ingredient.substitutes.length > 0
+                  ? ingredient.substitutes
+                      .map((substitute) => substitute.name)
+                      .join(", ") // Join substitute names as comma-separated list
+                  : "No substitutes"}
+              </td>
               <td>
                 <button
                   className="btn btn-primary"
