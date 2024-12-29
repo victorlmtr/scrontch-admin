@@ -26,7 +26,7 @@ const IngredientsTab = () => {
           axios.get("http://localhost:8083/api/v1/categories"),
         ]);
         setIngredients(ingredientsResponse.data);
-        setFilteredIngredients(ingredientsResponse.data); // Initialize filtered list
+        setFilteredIngredients(ingredientsResponse.data);
         setCategories(categoriesResponse.data);
       } catch (err) {
         setError(err);
@@ -119,26 +119,26 @@ const IngredientsTab = () => {
       if (editingIngredient) {
         // Update existing ingredient
         const response = await axios.put(
-          `http://localhost:8083/api/v1/ingredients/${editingIngredient.id}`,
-          updatedIngredient
+            `http://localhost:8083/api/v1/ingredients/${editingIngredient.id}`,
+            updatedIngredient
         );
 
         setIngredients((prev) =>
-          prev.map((ing) =>
-            ing.id === editingIngredient.id ? response.data : ing
-          )
+            prev.map((ing) =>
+                ing.id === editingIngredient.id ? response.data : ing
+            )
         );
         setFilteredIngredients((prev) =>
-          prev.map((ing) =>
-            ing.id === editingIngredient.id ? response.data : ing
-          )
+            prev.map((ing) =>
+                ing.id === editingIngredient.id ? response.data : ing
+            )
         );
         setEditingIngredient(null);
       } else {
         // Add new ingredient
         const response = await axios.post(
-          "http://localhost:8083/api/v1/ingredients",
-          updatedIngredient
+            "http://localhost:8083/api/v1/ingredients",
+            updatedIngredient
         );
 
         setIngredients((prev) => [...prev, response.data]);
@@ -150,12 +150,14 @@ const IngredientsTab = () => {
         description: "",
         image: "",
         categoryid: "",
+        isFemale: false, // Reset the isFemale value
       });
       setIsAdding(false);
     } catch (err) {
       alert("Failed to save ingredient!");
     }
   };
+
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error fetching data: {error.message}</div>;
@@ -195,8 +197,96 @@ const IngredientsTab = () => {
 
       {/* Ingredient Form for Adding or Editing */}
       {(isAdding || editingIngredient) && (
-        <div className="edit-form">{/* ...form code... */}</div>
+          <div className="edit-form">
+            <form onSubmit={handleFormSubmit}>
+              <div className="mb-3">
+                <label htmlFor="name" className="form-label">
+                  Name
+                </label>
+                <input
+                    type="text"
+                    className="form-control"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label htmlFor="alias" className="form-label">
+                  Alias
+                </label>
+                <input
+                    type="text"
+                    className="form-control"
+                    id="alias"
+                    name="alias"
+                    value={formData.alias}
+                    onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label htmlFor="description" className="form-label">
+                  Description
+                </label>
+                <textarea
+                    className="form-control"
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label htmlFor="categoryid" className="form-label">
+                  Category
+                </label>
+                <select
+                    className="form-select"
+                    id="categoryid"
+                    name="categoryid"
+                    value={formData.categoryid}
+                    onChange={handleCategoryChange}
+                >
+                  {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mb-3 form-check">
+                <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="isFemale"
+                    name="isFemale"
+                    checked={formData.isFemale}
+                    onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isFemale: e.target.checked,
+                        }))
+                    }
+                />
+                <label className="form-check-label" htmlFor="isFemale">
+                  Is Female?
+                </label>
+              </div>
+
+              <div className="mb-3">
+                <button type="submit" className="btn btn-primary">
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
       )}
+
 
       {/* Ingredient List */}
       <table className="table table-bordered mt-4">
