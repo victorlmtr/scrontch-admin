@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 const RecipesTab = ({ onViewRecipe }) => {
   const [recipes, setRecipes] = useState([]);
@@ -27,6 +28,9 @@ const RecipesTab = ({ onViewRecipe }) => {
   return (
       <div>
         <h2>Recipes</h2>
+        <Link to="/add-recipe" className="btn btn-primary">
+          Add New Recipe
+        </Link>
         <table>
           <thead>
           <tr>
