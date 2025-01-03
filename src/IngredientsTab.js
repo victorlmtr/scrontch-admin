@@ -15,6 +15,7 @@ const IngredientsTab = () => {
     description: "",
     image: "",
     categoryid: "",
+    isFemale: false, // Ensure isFemale is always included
   });
   const [isAdding, setIsAdding] = useState(false);
 
@@ -43,9 +44,9 @@ const IngredientsTab = () => {
 
     // Filter ingredients based on name or alias
     const filtered = ingredients.filter(
-      (ingredient) =>
-        ingredient.name.toLowerCase().includes(term) ||
-        (ingredient.alias && ingredient.alias.toLowerCase().includes(term))
+        (ingredient) =>
+            ingredient.name.toLowerCase().includes(term) ||
+            (ingredient.alias && ingredient.alias.toLowerCase().includes(term))
     );
     setFilteredIngredients(filtered);
   };
@@ -63,6 +64,7 @@ const IngredientsTab = () => {
       description: ingredient.description,
       image: ingredient.image,
       categoryid: ingredient.categoryid,
+      isFemale: ingredient.isFemale || false, // Ensure isFemale is set here as well
     });
   };
 
@@ -82,29 +84,31 @@ const IngredientsTab = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
+    const uploadData = new FormData();
+    uploadData.append("files", file);
 
     try {
       const response = await axios.post(
-        "https://images.victorl.xyz/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+          "https://images.victorl.xyz/upload",
+          uploadData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
       );
+      console.log(response.data)
 
       if (response.status === 200) {
-        const fileUrl = response.data.url;
+        const fileUrl = response.data.urls[0]; // Accessing the correct key
         setFormData((prev) => ({ ...prev, image: fileUrl }));
         alert("Image uploaded successfully!");
       } else {
-        alert("Failed to upload image: " + response.statusText);
+        alert(`Failed to upload image: ${response.statusText}`);
       }
     } catch (error) {
-      alert("Error during image upload.");
+      console.error("Error during image upload:", error);
+      alert("An error occurred while uploading the image.");
     }
   };
 
@@ -150,7 +154,7 @@ const IngredientsTab = () => {
         description: "",
         image: "",
         categoryid: "",
-        isFemale: false, // Reset the isFemale value
+        isFemale: false, // Always reset to false after submit
       });
       setIsAdding(false);
     } catch (err) {
@@ -163,134 +167,155 @@ const IngredientsTab = () => {
   if (error) return <div>Error fetching data: {error.message}</div>;
 
   return (
-    <div className="container mt-5">
-      <h1>Ingredients</h1>
+      <div className="container mt-5">
+        <h1>Ingredients</h1>
 
-      {/* Search Input */}
-      <div className="mb-3">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Search ingredients by name or alias..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-        />
-      </div>
+        {/* Search Input */}
+        <div className="mb-3">
+          <input
+              type="text"
+              className="form-control"
+              placeholder="Search ingredients by name or alias..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+          />
+        </div>
 
-      {/* Add Ingredient Button */}
-      <button
-        className="btn btn-success mb-3"
-        onClick={() => {
-          setIsAdding(true);
-          setEditingIngredient(null);
-          setFormData({
-            name: "",
-            alias: "",
-            description: "",
-            image: "",
-            categoryid: "",
-          });
-        }}
-      >
-        Add New Ingredient
-      </button>
+        {/* Add Ingredient Button */}
+        <button
+            className="btn btn-success mb-3"
+            onClick={() => {
+              setIsAdding(true);
+              setEditingIngredient(null);
+              setFormData({
+                name: "",
+                alias: "",
+                description: "",
+                image: "",
+                categoryid: "",
+                isFemale: false, // Ensure isFemale is reset
+              });
+            }}
+        >
+          Add New Ingredient
+        </button>
 
-      {/* Ingredient Form for Adding or Editing */}
-      {(isAdding || editingIngredient) && (
-          <div className="edit-form">
-            <form onSubmit={handleFormSubmit}>
-              <div className="mb-3">
-                <label htmlFor="name" className="form-label">
-                  Name
-                </label>
-                <input
-                    type="text"
-                    className="form-control"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                />
-              </div>
+        {/* Ingredient Form for Adding or Editing */}
+        {(isAdding || editingIngredient) && (
+            <div className="edit-form">
+              <form onSubmit={handleFormSubmit}>
+                <div className="mb-3">
+                  <label htmlFor="name" className="form-label">
+                    Name
+                  </label>
+                  <input
+                      type="text"
+                      className="form-control"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                  />
+                </div>
 
-              <div className="mb-3">
-                <label htmlFor="alias" className="form-label">
-                  Alias
-                </label>
-                <input
-                    type="text"
-                    className="form-control"
-                    id="alias"
-                    name="alias"
-                    value={formData.alias}
-                    onChange={handleInputChange}
-                />
-              </div>
+                <div className="mb-3">
+                  <label htmlFor="alias" className="form-label">
+                    Alias
+                  </label>
+                  <input
+                      type="text"
+                      className="form-control"
+                      id="alias"
+                      name="alias"
+                      value={formData.alias}
+                      onChange={handleInputChange}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="image" className="form-label">
+                    Upload Image
+                  </label>
+                  <input
+                      type="file"
+                      className="form-control"
+                      id="image"
+                      name="image"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                  />
+                  {formData.image && (
+                      <img
+                          src={formData.image}
+                          alt="Uploaded"
+                          style={{width: "100px", marginTop: "10px"}}
+                      />
+                  )}
+                </div>
 
-              <div className="mb-3">
-                <label htmlFor="description" className="form-label">
-                  Description
-                </label>
-                <textarea
-                    className="form-control"
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                />
-              </div>
+                <div className="mb-3">
+                  <label htmlFor="description" className="form-label">
+                    Description
+                  </label>
+                  <textarea
+                      className="form-control"
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                  />
+                </div>
 
-              <div className="mb-3">
-                <label htmlFor="categoryid" className="form-label">
-                  Category
-                </label>
-                <select
-                    className="form-select"
-                    id="categoryid"
-                    name="categoryid"
-                    value={formData.categoryid}
-                    onChange={handleCategoryChange}
-                >
-                  {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                  ))}
-                </select>
-              </div>
+                <div className="mb-3">
+                  <label htmlFor="categoryid" className="form-label">
+                    Category
+                  </label>
+                  <select
+                      className="form-select"
+                      id="categoryid"
+                      name="categoryid"
+                      value={formData.categoryid}
+                      onChange={handleCategoryChange}
+                  >
+                    {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="mb-3 form-check">
-                <input
-                    type="checkbox"
-                    className="form-check-input"
-                    id="isFemale"
-                    name="isFemale"
-                    checked={formData.isFemale}
-                    onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isFemale: e.target.checked,
-                        }))
-                    }
-                />
-                <label className="form-check-label" htmlFor="isFemale">
-                  Is Female?
-                </label>
-              </div>
+                <div className="mb-3 form-check">
+                  <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id="isFemale"
+                      name="isFemale"
+                      checked={formData.isFemale}
+                      onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            isFemale: e.target.checked,
+                          }))
+                      }
+                  />
+                  <label className="form-check-label" htmlFor="isFemale">
+                    Is Female?
+                  </label>
+                </div>
 
-              <div className="mb-3">
-                <button type="submit" className="btn btn-primary">
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-      )}
+                <div className="mb-3">
+                  <button type="submit" className="btn btn-primary">
+                    Save
+                  </button>
+                </div>
+              </form>
+            </div>
+        )}
 
 
-      {/* Ingredient List */}
-      <table className="table table-bordered mt-4">
-        <thead>
+        {/* Ingredient List */}
+        <table className="table table-bordered mt-4">
+          <thead>
           <tr>
             <th>Ingredient ID</th>
             <th>Name</th>
@@ -300,39 +325,39 @@ const IngredientsTab = () => {
             <th>Category</th>
             <th>Actions</th>
           </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
           {filteredIngredients.map((ingredient) => (
-            <tr key={ingredient.id}>
-              <td>{ingredient.id}</td>
-              <td>{ingredient.name}</td>
-              <td>{ingredient.alias || "No alias"}</td>
-              <td>{ingredient.description || "No description"}</td>
-              <td>
-                {ingredient.image ? (
-                  <img
-                    src={ingredient.image}
-                    alt={ingredient.name}
-                    style={{ width: "50px" }}
-                  />
-                ) : (
-                  "No image"
-                )}
-              </td>
-              <td>{getCategoryName(ingredient.categoryid)}</td>
-              <td>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleEditClick(ingredient)}
-                >
-                  Edit
-                </button>
-              </td>
-            </tr>
+              <tr key={ingredient.id}>
+                <td>{ingredient.id}</td>
+                <td>{ingredient.name}</td>
+                <td>{ingredient.alias || "No alias"}</td>
+                <td>{ingredient.description || "No description"}</td>
+                <td>
+                  {ingredient.image ? (
+                      <img
+                          src={ingredient.image}
+                          alt={ingredient.name}
+                          style={{ width: "50px" }}
+                      />
+                  ) : (
+                      "No image"
+                  )}
+                </td>
+                <td>{getCategoryName(ingredient.categoryid)}</td>
+                <td>
+                  <button
+                      className="btn btn-primary"
+                      onClick={() => handleEditClick(ingredient)}
+                  >
+                    Edit
+                  </button>
+                </td>
+              </tr>
           ))}
-        </tbody>
-      </table>
-    </div>
+          </tbody>
+        </table>
+      </div>
   );
 };
 
