@@ -12,6 +12,7 @@ const AddRecipe = () => {
         typeId: "",
         countries: [],
         recipediets: [],
+        steps: [],
     });
 
     const [types, setTypes] = useState([]);
@@ -22,21 +23,40 @@ const AddRecipe = () => {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [dropdownActive, setDropdownActive] = useState(false);
-
+    const [showStepForm, setShowStepForm] = useState(false); // Toggle for step form
+    const [stepData, setStepData] = useState({
+        title: "",
+        steporder: "",
+        length: "",
+        image: null,
+        instructions: "",
+        stepingredients: [],
+    });
+    const [ingredientSearchTerm, setIngredientSearchTerm] = useState("");
+    const [filteredIngredients, setFilteredIngredients] = useState([]);
+    const [allIngredients, setAllIngredients] = useState([]);
+    const [newIngredient, setNewIngredient] = useState({
+        ingredientid: null,
+        quantity: 0,
+        isoptional: false,
+    });
     const dropdownRef = useRef();
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [typesResponse, countriesResponse, dietsResponse] = await Promise.all([
+                const [typesResponse, countriesResponse, dietsResponse, ingredientsResponse] = await Promise.all([
                     axios.get("http://localhost:8084/api/v1/types"),
                     axios.get("http://localhost:8084/api/v1/countries"),
-                    axios.get("http://localhost:8084/api/v1/recipediets"),
+                    axios.get("http://localhost:8082/api/v1/diets"),
+                    axios.get("http://localhost:8083/api/v1/ingredients"),
                 ]);
                 setTypes(typesResponse.data);
                 setCountries(countriesResponse.data);
                 setFilteredCountries(countriesResponse.data);
                 setDiets(dietsResponse.data);
+                setAllIngredients(ingredientsResponse.data);
+                setFilteredIngredients(ingredientsResponse.data);
             } catch (err) {
                 setError(err);
             } finally {
@@ -78,6 +98,87 @@ const AddRecipe = () => {
             ...prev,
             [name]: value,
         }));
+    };
+
+    const handleStepInputChange = (e) => {
+        const { name, value } = e.target;
+        setStepData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const handleStepImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            alert("No file selected.");
+            return;
+        }
+
+        const imageData = new FormData();
+        imageData.append("file", file);
+
+        try {
+            const response = await axios.post(
+                "https://images.victorl.xyz/upload",
+                imageData,
+                {
+                    headers: { "Content-Type": "multipart/form-data" },
+                }
+            );
+            setStepData((prev) => ({ ...prev, image: response.data.url }));
+            alert("Step image uploaded successfully!");
+        } catch (err) {
+            alert("Failed to upload image.");
+        }
+    };
+
+    const handleIngredientSearchChange = (e) => {
+        const term = e.target.value.toLowerCase();
+        setIngredientSearchTerm(term);
+
+        const filtered = allIngredients.filter(
+            (ing) =>
+                ing.name.toLowerCase().includes(term) ||
+                (ing.alias && ing.alias.toLowerCase().includes(term))
+        );
+        setFilteredIngredients(filtered);
+    };
+
+    const handleAddIngredient = () => {
+        if (!newIngredient.ingredientid) {
+            alert("Please select an ingredient.");
+            return;
+        }
+        const stepIngredient = {
+            ...newIngredient,
+            unitid: null, // Update this based on your implementation, e.g., dropdown for unit
+            preparationid: null, // Update this as needed
+        };
+
+        setStepData((prev) => ({
+            ...prev,
+            stepingredients: [...prev.stepingredients, stepIngredient],
+        }));
+
+        setNewIngredient({ ingredientid: null, quantity: 0, isoptional: false });
+    };
+
+    const handleAddStep = (e) => {
+        e.preventDefault();
+        setFormData((prev) => ({
+            ...prev,
+            steps: [...prev.steps, { ...stepData, steporder: parseInt(stepData.steporder), length: parseInt(stepData.length) }],
+        }));
+        setStepData({
+            title: "",
+            steporder: "",
+            length: "",
+            image: null,
+            instructions: "",
+            stepingredients: [],
+        });
+        setShowStepForm(false);
     };
 
     const handleCountrySelect = (id) => {
@@ -128,7 +229,10 @@ const AddRecipe = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post("http://localhost:8084/api/v1/recipes", formData);
+            const response = await axios.post("http://localhost:8084/api/v1/recipes", {
+                ...formData,
+                recipediets: formData.recipediets.map((dietId) => ({ dietid: dietId })), // Transform diets to match RecipedietDto
+            });
             alert("Recipe added successfully!");
             setFormData({
                 name: "",
@@ -140,6 +244,7 @@ const AddRecipe = () => {
                 typeId: "",
                 countries: [],
                 recipediets: [],
+                steps: [],
             });
         } catch (err) {
             alert("Failed to add recipe.");
@@ -291,7 +396,7 @@ const AddRecipe = () => {
                             </ul>
                         </div>
                     )}
-                </div>dn
+                </div>
 
                 <div className="mb-3">
                     <label className="form-label">Diets</label>
@@ -309,11 +414,178 @@ const AddRecipe = () => {
                                 htmlFor={`diet-${diet.id}`}
                                 className="form-check-label"
                             >
-                                {diet.name}
+                                {diet.dietname}{" "}
+                                <img
+                                    src={diet.icon}
+                                    alt={diet.dietname}
+                                    style={{width: "20px", height: "20px", marginLeft: "5px"}}
+                                />
                             </label>
                         </div>
                     ))}
                 </div>
+
+                <div className="mb-3">
+                    <button
+                        type="button"
+                        className="btn btn-secondary mb-3"
+                        onClick={() => setShowStepForm(!showStepForm)}
+                    >
+                        {showStepForm ? "Cancel Step" : "Add New Step"}
+                    </button>
+                    {showStepForm && (
+                        <form onSubmit={handleAddStep} className="mb-4">
+                            <div className="mb-3">
+                                <label htmlFor="step-title" className="form-label">Title</label>
+                                <input
+                                    type="text"
+                                    id="step-title"
+                                    name="title"
+                                    className="form-control"
+                                    value={stepData.title}
+                                    onChange={handleStepInputChange}
+                                />
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="step-order" className="form-label">Step Order</label>
+                                <input
+                                    type="number"
+                                    id="step-order"
+                                    name="steporder"
+                                    className="form-control"
+                                    value={stepData.steporder}
+                                    onChange={handleStepInputChange}
+                                />
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="step-length" className="form-label">Length (minutes)</label>
+                                <input
+                                    type="number"
+                                    id="step-length"
+                                    name="length"
+                                    className="form-control"
+                                    value={stepData.length}
+                                    onChange={handleStepInputChange}
+                                />
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="step-image" className="form-label">Image</label>
+                                <input
+                                    type="file"
+                                    id="step-image"
+                                    className="form-control"
+                                    onChange={handleStepImageUpload}
+                                />
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="step-instructions" className="form-label">Instructions</label>
+                                <textarea
+                                    id="step-instructions"
+                                    name="instructions"
+                                    className="form-control"
+                                    value={stepData.instructions}
+                                    onChange={handleStepInputChange}
+                                />
+                            </div>
+
+                            <div className="mb-3">
+                                <h5>Add Ingredients</h5>
+                                <input
+                                    type="text"
+                                    className="form-control mb-2"
+                                    placeholder="Search ingredients..."
+                                    value={ingredientSearchTerm}
+                                    onChange={handleIngredientSearchChange}
+                                />
+                                <select
+                                    className="form-select mb-2"
+                                    value={newIngredient.ingredientid || ""}
+                                    onChange={(e) =>
+                                        setNewIngredient((prev) => ({
+                                            ...prev,
+                                            ingredientid: parseInt(e.target.value, 10),
+                                        }))
+                                    }
+                                >
+                                    <option value="" disabled>
+                                        Select an ingredient
+                                    </option>
+                                    {filteredIngredients.map((ingredient) => (
+                                        <option key={ingredient.id} value={ingredient.id}>
+                                            {ingredient.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="mb-3">
+                                    <label className="form-label">Quantity</label>
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        value={newIngredient.quantity}
+                                        onChange={(e) =>
+                                            setNewIngredient((prev) => ({
+                                                ...prev,
+                                                quantity: parseFloat(e.target.value),
+                                            }))
+                                        }
+                                    />
+                                </div>
+                                <div className="form-check mb-3">
+                                    <input
+                                        type="checkbox"
+                                        className="form-check-input"
+                                        id="isOptional"
+                                        checked={newIngredient.isoptional}
+                                        onChange={(e) =>
+                                            setNewIngredient((prev) => ({
+                                                ...prev,
+                                                isoptional: e.target.checked,
+                                            }))
+                                        }
+                                    />
+                                    <label className="form-check-label" htmlFor="isOptional">
+                                        Is Optional?
+                                    </label>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={handleAddIngredient}
+                                >
+                                    Add Ingredient
+                                </button>
+                            </div>
+
+
+                            <button type="submit" className="btn btn-primary">
+                                Add Step
+                            </button>
+                        </form>
+                    )}
+                </div>
+
+                <div className="mb-3">
+                    <label className="form-label">Steps</label>
+                    <ul className="list-group">
+                        {formData.steps.map((step, index) => (
+                            <li key={index} className="list-group-item">
+                                <strong>{step.steporder}. {step.title}</strong> - {step.instructions}
+                                {step.image && (
+                                    <img
+                                        src={step.image}
+                                        alt={`Step ${step.steporder}`}
+                                        style={{width: "50px", height: "50px", marginLeft: "10px"}}
+                                    />
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
 
                 <button type="submit" className="btn btn-primary">Add Recipe</button>
             </form>
