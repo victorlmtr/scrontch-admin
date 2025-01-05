@@ -12,7 +12,7 @@ const AddRecipe = () => {
         portions: 1,
         notes: "",
         image: null,
-        typeId: "",
+        typeid: "",
         countries: [],
         recipediets: [],
         steps: [],
@@ -267,12 +267,18 @@ const AddRecipe = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const payload = {
+            ...formData,
+            countries: formData.countries.map((countryId) => ({ id: countryId })),
+            recipediets: formData.recipediets.map((diet) => ({ dietid: diet.dietid })),
+        };
+
+        // Log the payload for verification
+        console.log("Payload to be sent:", JSON.stringify(payload, null, 2));
+
         try {
-            const response = await axios.post ("http://localhost:8084/api/v1/recipes", {
-                ...formData,
-                countries: formData.countries.map((countryId) => ({ id: countryId })),
-                recipediets: formData.recipediets.map((dietId) => ({ dietid: dietId })),
-            });
+            const response = await axios.post("http://localhost:8084/api/v1/recipes", payload);
             alert("Recipe added successfully!");
             setFormData({
                 name: "",
@@ -281,12 +287,13 @@ const AddRecipe = () => {
                 portions: 1,
                 notes: "",
                 image: null,
-                typeId: "",
+                typeid: "",
                 countries: [],
                 recipediets: [],
                 steps: [],
             });
         } catch (err) {
+            console.error("Failed to add recipe:", err);
             alert("Failed to add recipe.");
         }
     };

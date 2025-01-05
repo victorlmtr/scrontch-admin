@@ -75,12 +75,12 @@ const RecipeForm = ({ formData, handleInputChange, handleImageUpload, types, han
             </div>
 
             <div className="mb-3">
-                <label htmlFor="typeId" className="form-label">Type</label>
+                <label htmlFor="typeid" className="form-label">Type</label>
                 <select
-                    id="typeId"
-                    name="typeId"
+                    id="typeid"
+                    name="typeid"
                     className="form-select"
-                    value={formData.typeId}
+                    value={formData.typeid}
                     onChange={handleInputChange}
                 >
                     <option value="">Select a type</option>
