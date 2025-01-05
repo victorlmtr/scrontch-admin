@@ -155,8 +155,8 @@ const AddRecipe = () => {
         }
         const stepIngredient = {
             ...newIngredient,
-            unitid: null,
-            preparationid: null,
+            preparationid: newIngredient.preparationid,
+            unitid: newIngredient.unitid,
         };
 
         setStepData((prev) => ({
@@ -164,7 +164,7 @@ const AddRecipe = () => {
             stepingredients: [...prev.stepingredients, stepIngredient],
         }));
 
-        setNewIngredient({ ingredientid: null, quantity: 0, isoptional: false });
+        setNewIngredient({ ingredientid: null, quantity: 0, isoptional: false, unitid: null, preparationid: null });
     };
 
     const handleAddStep = (e) => {

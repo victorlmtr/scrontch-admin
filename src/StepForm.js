@@ -1,6 +1,68 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const StepForm = ({ stepData, handleStepInputChange, handleStepImageUpload, handleAddIngredient, ingredientSearchTerm, handleIngredientSearchChange, filteredIngredients, newIngredient, setNewIngredient, handleAddStep, showStepForm, setShowStepForm }) => {
+    const [units, setUnits] = useState([]);
+    const [preparationMethods, setPreparationMethods] = useState([]);
+    const [newUnitName, setNewUnitName] = useState("");
+    const [newPreparationMethodName, setNewPreparationMethodName] = useState("");
+
+
+    useEffect(() => {
+        const fetchUnits = async () => {
+            try {
+                const response = await axios.get("http://localhost:8084/api/v1/units");
+                setUnits(response.data);
+            } catch (error) {
+                console.error("Error fetching units:", error);
+            }
+        };
+
+        const fetchPreparationMethods = async () => {
+            try {
+                const response = await axios.get("http://localhost:8084/api/v1/preparationmethods");
+                setPreparationMethods(response.data);
+            } catch (error) {
+                console.error("Error fetching preparation methods:", error);
+            }
+        };
+
+        fetchUnits();
+        fetchPreparationMethods();
+    }, []);
+
+    const handleCreateUnit = async () => {
+        if (!newUnitName) {
+            alert("Please enter a unit name.");
+            return;
+        }
+
+        try {
+            const response = await axios.post("http://localhost:8084/api/v1/units", { unitname: newUnitName });
+            setUnits((prevUnits) => [...prevUnits, response.data]);
+            setNewUnitName("");
+            alert("Unit created successfully!");
+        } catch (error) {
+            alert("Failed to create unit.");
+        }
+    };
+
+    const handleCreatePreparationMethod = async () => {
+        if (!newPreparationMethodName) {
+            alert("Please enter a preparation method name.");
+            return;
+        }
+
+        try {
+            const response = await axios.post("http://localhost:8084/api/v1/preparationmethods", { name: newPreparationMethodName });
+            setPreparationMethods((prevMethods) => [...prevMethods, response.data]);
+            setNewPreparationMethodName("");
+            alert("Preparation method created successfully!");
+        } catch (error) {
+            alert("Failed to create preparation method.");
+        }
+    };
+
     return (
         <>
             <button
@@ -128,6 +190,78 @@ const StepForm = ({ stepData, handleStepInputChange, handleStepImageUpload, hand
                                 Is Optional?
                             </label>
                         </div>
+                        <div className="mb-3">
+                            <label htmlFor="unitId" className="form-label">Unit</label>
+                            <select
+                                className="form-select"
+                                value={newIngredient.unitid || ""}
+                                onChange={(e) =>
+                                    setNewIngredient((prev) => ({
+                                        ...prev,
+                                        unitid: parseInt(e.target.value, 10),
+                                    }))
+                                }
+                            >
+                                <option value="" disabled>Select a unit</option>
+                                {units.map((unit) => (
+                                    <option key={unit.id} value={unit.id}>
+                                        {unit.unitname}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="mb-3">
+                            <label htmlFor="newUnitName" className="form-label">Create New Unit</label>
+                            <input
+                                type="text"
+                                id="newUnitName"
+                                className="form-control"
+                                value={newUnitName}
+                                onChange={(e) => setNewUnitName(e.target.value)}
+                            />
+                            <button type="button" className="btn btn-primary mt-2" onClick={handleCreateUnit}>
+                                Create Unit
+                            </button>
+                        </div>
+
+                        <div className="mb-3">
+                            <label htmlFor="preparationId" className="form-label">Preparation Method</label>
+                            <select
+                                className="form-select"
+                                value={newIngredient.preparationid || ""}
+                                onChange={(e) =>
+                                    setNewIngredient((prev) => ({
+                                        ...prev,
+                                        preparationid: parseInt(e.target.value, 10),
+                                    }))
+                                }
+                            >
+                                <option value="" disabled>Select a preparation method</option>
+                                {preparationMethods.map((method) => (
+                                    <option key={method.id} value={method.id}>
+                                        {method.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="mb-3">
+                            <label htmlFor="newPreparationMethodName" className="form-label">Create New Preparation
+                                Method</label>
+                            <input
+                                type="text"
+                                id="newPreparationMethodName"
+                                className="form-control"
+                                value={newPreparationMethodName}
+                                onChange={(e) => setNewPreparationMethodName(e.target.value)}
+                            />
+                            <button type="button" className="btn btn-primary mt-2"
+                                    onClick={handleCreatePreparationMethod}>
+                                Create Preparation Method
+                            </button>
+                        </div>
+
                         <button
                             type="button"
                             className="btn btn-secondary"
