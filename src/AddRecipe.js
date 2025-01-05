@@ -1,5 +1,8 @@
-import React, {useState, useEffect, useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import RecipeForm from "./RecipeForm";
+import StepForm from "./StepForm";
+import IngredientList from "./IngredientList";
 
 const AddRecipe = () => {
     const [formData, setFormData] = useState({
@@ -23,7 +26,7 @@ const AddRecipe = () => {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [dropdownActive, setDropdownActive] = useState(false);
-    const [showStepForm, setShowStepForm] = useState(false); // Toggle for step form
+    const [showStepForm, setShowStepForm] = useState(false);
     const [stepData, setStepData] = useState({
         title: "",
         steporder: "",
@@ -152,8 +155,8 @@ const AddRecipe = () => {
         }
         const stepIngredient = {
             ...newIngredient,
-            unitid: null, // Update this based on your implementation, e.g., dropdown for unit
-            preparationid: null, // Update this as needed
+            unitid: null,
+            preparationid: null,
         };
 
         setStepData((prev) => ({
@@ -229,9 +232,9 @@ const AddRecipe = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post("http://localhost:8084/api/v1/recipes", {
+            const response = await axios.post ("http://localhost:8084/api/v1/recipes", {
                 ...formData,
-                recipediets: formData.recipediets.map((dietId) => ({ dietid: dietId })), // Transform diets to match RecipedietDto
+                recipediets: formData.recipediets.map((dietId) => ({ dietid: dietId })),
             });
             alert("Recipe added successfully!");
             setFormData({
@@ -250,345 +253,44 @@ const AddRecipe = () => {
             alert("Failed to add recipe.");
         }
     };
-    const handleDropdownToggle = () => setDropdownActive(!dropdownActive);
-    const handleSearchBlur = (e) => {
-        if (!dropdownRef.current.contains(e.relatedTarget)) {
-            setDropdownActive(false);
-        }
-    }
+
     if (loading) return <div>Loading form data...</div>;
     if (error) return <div>Error loading data: {error.message}</div>;
 
     return (
         <div className="container mt-5">
             <h1>Add New Recipe</h1>
-            <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                    <label htmlFor="name" className="form-label">Name</label>
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        className="form-control"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                    />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="description" className="form-label">Description</label>
-                    <textarea
-                        id="description"
-                        name="description"
-                        className="form-control"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                    />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="difficulty" className="form-label">Difficulty (1-3)</label>
-                    <input
-                        type="number"
-                        id="difficulty"
-                        name="difficulty"
-                        className="form-control"
-                        value={formData.difficulty}
-                        onChange={handleInputChange}
-                        min={1}
-                        max={3}
-                    />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="portions" className="form-label">Portions</label>
-                    <input
-                        type="number"
-                        id="portions"
-                        name="portions"
-                        className="form-control"
-                        value={formData.portions}
-                        onChange={handleInputChange}
-                        step="0.1"
-                    />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="notes" className="form-label">Notes</label>
-                    <textarea
-                        id="notes"
-                        name="notes"
-                        className="form-control"
-                        value={formData.notes}
-                        onChange={handleInputChange}
-                    />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="image" className="form-label">Recipe Image</label>
-                    <input
-                        type="file"
-                        id="image"
-                        className="form-control"
-                        onChange={handleImageUpload}
-                    />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="typeId" className="form-label">Type</label>
-                    <select
-                        id="typeId"
-                        name="typeId"
-                        className="form-select"
-                        value={formData.typeId}
-                        onChange={handleInputChange}
-                    >
-                        <option value="">Select a type</option>
-                        {types.map((type) => (
-                            <option key={type.id} value={type.id}>
-                                {type.typename}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="mb-3" ref={dropdownRef}>
-                    <label className="form-label">Countries</label>
-                    <div
-                        className="form-control"
-                        tabIndex={0}
-                        onClick={handleDropdownToggle}
-                        onBlur={handleSearchBlur}
-                    >
-                        {formData.countries.map((countryId) => {
-                            const country = countries.find((c) => c.id === countryId);
-                            return (
-                                <span key={countryId} className="badge bg-primary me-2">
-                                    {country?.name}
-                                </span>
-                            );
-                        })}
-                    </div>
-                    {dropdownActive && (
-                        <div className="dropdown-menu show w-100">
-                            <input
-                                type="text"
-                                className="form-control mb-2"
-                                placeholder="Search countries..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                autoFocus
-                            />
-                            <ul className="list-group" style={{maxHeight: "200px", overflowY: "scroll"}}>
-                                {filteredCountries.slice(0, 10).map((country) => (
-                                    <li
-                                        key={country.id}
-                                        className={`list-group-item ${
-                                            formData.countries.includes(country.id)
-                                                ? "active"
-                                                : ""
-                                        }`}
-                                        onClick={() => handleCountrySelect(country.id)}
-                                    >
-                                        {country.name}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </div>
-
-                <div className="mb-3">
-                    <label className="form-label">Diets</label>
-                    {diets.map((diet) => (
-                        <div key={diet.id} className="form-check">
-                            <input
-                                type="checkbox"
-                                id={`diet-${diet.id}`}
-                                value={diet.id}
-                                checked={formData.recipediets.includes(diet.id)}
-                                onChange={(e) => handleCheckboxChange(e, "recipediets")}
-                                className="form-check-input"
-                            />
-                            <label
-                                htmlFor={`diet-${diet.id}`}
-                                className="form-check-label"
-                            >
-                                {diet.dietname}{" "}
-                                <img
-                                    src={diet.icon}
-                                    alt={diet.dietname}
-                                    style={{width: "20px", height: "20px", marginLeft: "5px"}}
-                                />
-                            </label>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="mb-3">
-                    <button
-                        type="button"
-                        className="btn btn-secondary mb-3"
-                        onClick={() => setShowStepForm(!showStepForm)}
-                    >
-                        {showStepForm ? "Cancel Step" : "Add New Step"}
-                    </button>
-                    {showStepForm && (
-                        <form onSubmit={handleAddStep} className="mb-4">
-                            <div className="mb-3">
-                                <label htmlFor="step-title" className="form-label">Title</label>
-                                <input
-                                    type="text"
-                                    id="step-title"
-                                    name="title"
-                                    className="form-control"
-                                    value={stepData.title}
-                                    onChange={handleStepInputChange}
-                                />
-                            </div>
-
-                            <div className="mb-3">
-                                <label htmlFor="step-order" className="form-label">Step Order</label>
-                                <input
-                                    type="number"
-                                    id="step-order"
-                                    name="steporder"
-                                    className="form-control"
-                                    value={stepData.steporder}
-                                    onChange={handleStepInputChange}
-                                />
-                            </div>
-
-                            <div className="mb-3">
-                                <label htmlFor="step-length" className="form-label">Length (minutes)</label>
-                                <input
-                                    type="number"
-                                    id="step-length"
-                                    name="length"
-                                    className="form-control"
-                                    value={stepData.length}
-                                    onChange={handleStepInputChange}
-                                />
-                            </div>
-
-                            <div className="mb-3">
-                                <label htmlFor="step-image" className="form-label">Image</label>
-                                <input
-                                    type="file"
-                                    id="step-image"
-                                    className="form-control"
-                                    onChange={handleStepImageUpload}
-                                />
-                            </div>
-
-                            <div className="mb-3">
-                                <label htmlFor="step-instructions" className="form-label">Instructions</label>
-                                <textarea
-                                    id="step-instructions"
-                                    name="instructions"
-                                    className="form-control"
-                                    value={stepData.instructions}
-                                    onChange={handleStepInputChange}
-                                />
-                            </div>
-
-                            <div className="mb-3">
-                                <h5>Add Ingredients</h5>
-                                <input
-                                    type="text"
-                                    className="form-control mb-2"
-                                    placeholder="Search ingredients..."
-                                    value={ingredientSearchTerm}
-                                    onChange={handleIngredientSearchChange}
-                                />
-                                <select
-                                    className="form-select mb-2"
-                                    value={newIngredient.ingredientid || ""}
-                                    onChange={(e) =>
-                                        setNewIngredient((prev) => ({
-                                            ...prev,
-                                            ingredientid: parseInt(e.target.value, 10),
-                                        }))
-                                    }
-                                >
-                                    <option value="" disabled>
-                                        Select an ingredient
-                                    </option>
-                                    {filteredIngredients.map((ingredient) => (
-                                        <option key={ingredient.id} value={ingredient.id}>
-                                            {ingredient.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="mb-3">
-                                    <label className="form-label">Quantity</label>
-                                    <input
-                                        type="number"
-                                        className="form-control"
-                                        value={newIngredient.quantity}
-                                        onChange={(e) =>
-                                            setNewIngredient((prev) => ({
-                                                ...prev,
-                                                quantity: parseFloat(e.target.value),
-                                            }))
-                                        }
-                                    />
-                                </div>
-                                <div className="form-check mb-3">
-                                    <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        id="isOptional"
-                                        checked={newIngredient.isoptional}
-                                        onChange={(e) =>
-                                            setNewIngredient((prev) => ({
-                                                ...prev,
-                                                isoptional: e.target.checked,
-                                            }))
-                                        }
-                                    />
-                                    <label className="form-check-label" htmlFor="isOptional">
-                                        Is Optional?
-                                    </label>
-                                </div>
-                                <button
-                                    type="button"
-                                    className="btn btn-secondary"
-                                    onClick={handleAddIngredient}
-                                >
-                                    Add Ingredient
-                                </button>
-                            </div>
-
-
-                            <button type="submit" className="btn btn-primary">
-                                Add Step
-                            </button>
-                        </form>
-                    )}
-                </div>
-
-                <div className="mb-3">
-                    <label className="form-label">Steps</label>
-                    <ul className="list-group">
-                        {formData.steps.map((step, index) => (
-                            <li key={index} className="list-group-item">
-                                <strong>{step.steporder}. {step.title}</strong> - {step.instructions}
-                                {step.image && (
-                                    <img
-                                        src={step.image}
-                                        alt={`Step ${step.steporder}`}
-                                        style={{width: "50px", height: "50px", marginLeft: "10px"}}
-                                    />
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-
-                <button type="submit" className="btn btn-primary">Add Recipe</button>
-            </form>
+            <RecipeForm
+                formData={formData}
+                handleInputChange={handleInputChange}
+                handleImageUpload={handleImageUpload}
+                types={types}
+                handleCountrySelect={handleCountrySelect}
+                countries={countries}
+                filteredCountries={filteredCountries}
+                dropdownActive={dropdownActive}
+                setDropdownActive={setDropdownActive}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                handleCheckboxChange={handleCheckboxChange}
+                diets={diets}
+                handleSubmit={handleSubmit}
+            />
+            <StepForm
+                stepData={stepData}
+                handleStepInputChange={handleStepInputChange}
+                handleStepImageUpload={handleStepImageUpload}
+                handleAddIngredient={handleAddIngredient}
+                ingredientSearchTerm={ingredientSearchTerm}
+                handleIngredientSearchChange={handleIngredientSearchChange}
+                filteredIngredients={filteredIngredients}
+                newIngredient={newIngredient}
+                setNewIngredient={setNewIngredient}
+                handleAddStep={handleAddStep}
+                showStepForm={showStepForm}
+                setShowStepForm={setShowStepForm}
+            />
+            <IngredientList steps={formData.steps} />
         </div>
     );
 };
