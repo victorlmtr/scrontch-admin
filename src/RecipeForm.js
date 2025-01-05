@@ -119,7 +119,7 @@ const RecipeForm = ({ formData, handleInputChange, handleImageUpload, types, han
                             onChange={(e) => setSearchTerm(e.target.value)}
                             autoFocus
                         />
-                        <ul className="list-group" style={{ maxHeight: "200px", overflowY: "scroll" }}>
+                        <ul className="list-group" style={{maxHeight: "200px", overflowY: "scroll"}}>
                             {filteredCountries.slice(0, 10).map((country) => (
                                 <li
                                     key={country.id}
@@ -143,8 +143,8 @@ const RecipeForm = ({ formData, handleInputChange, handleImageUpload, types, han
                             type="checkbox"
                             id={`diet-${diet.id}`}
                             value={diet.id}
-                            checked={formData.recipediets.includes(diet.id)}
-                            onChange={(e) => handleCheckboxChange(e, "recipediets")}
+                            checked={formData.recipediets.some(d => d.dietid === diet.id)}
+                            onChange={handleCheckboxChange}
                             className="form-check-input"
                         />
                         <label htmlFor={`diet-${diet.id}`} className="form-check-label">
@@ -152,7 +152,7 @@ const RecipeForm = ({ formData, handleInputChange, handleImageUpload, types, han
                             <img
                                 src={diet.icon}
                                 alt={diet.dietname}
-                                style={{ width: "20px", height: "20px", marginLeft: "5px" }}
+                                style={{width: "20px", height: "20px", marginLeft: "5px"}}
                             />
                         </label>
                     </div>

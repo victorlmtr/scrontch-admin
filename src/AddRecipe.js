@@ -118,21 +118,31 @@ const AddRecipe = () => {
             return;
         }
 
-        const imageData = new FormData();
-        imageData.append("file", file);
+        const uploadData = new FormData();
+        uploadData.append("files", file);
 
         try {
             const response = await axios.post(
                 "https://images.victorl.xyz/upload",
-                imageData,
+                uploadData,
                 {
-                    headers: { "Content-Type": "multipart/form-data" },
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
                 }
             );
-            setStepData((prev) => ({ ...prev, image: response.data.url }));
-            alert("Step image uploaded successfully!");
-        } catch (err) {
-            alert("Failed to upload image.");
+            console.log(response.data)
+
+            if (response.status === 200) {
+                const fileUrl = response.data.urls[0]; // Accessing the correct key
+                setFormData((prev) => ({ ...prev, image: fileUrl }));
+                alert("Image uploaded successfully!");
+            } else {
+                alert(`Failed to upload image: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error("Error during image upload:", error);
+            alert("An error occurred while uploading the image.");
         }
     };
 
@@ -193,16 +203,32 @@ const AddRecipe = () => {
         });
     };
 
-    const handleCheckboxChange = (e, field) => {
+
+    const handleCheckboxChange = (e) => {
         const { value, checked } = e.target;
         setFormData((prev) => {
-            const currentValues = prev[field];
+            const currentRecipediets = prev.recipediets;
+
             if (checked) {
-                return { ...prev, [field]: [...currentValues, value] };
+                // Add the new RecipedietDto to the set
+                return {
+                    ...prev,
+                    recipediets: [
+                        ...currentRecipediets,
+                        { dietid: parseInt(value) } // Create a new RecipedietDto
+                    ],
+                };
+            } else {
+                // Remove the RecipedietDto from the set
+                return {
+                    ...prev,
+                    recipediets: currentRecipediets.filter((diet) => diet.dietid !== parseInt(value)),
+                };
             }
-            return { ...prev, [field]: currentValues.filter((v) => v !== value) };
         });
     };
+
+
 
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
@@ -211,21 +237,31 @@ const AddRecipe = () => {
             return;
         }
 
-        const imageData = new FormData();
-        imageData.append("file", file);
+        const uploadData = new FormData();
+        uploadData.append("files", file);
 
         try {
             const response = await axios.post(
                 "https://images.victorl.xyz/upload",
-                imageData,
+                uploadData,
                 {
-                    headers: { "Content-Type": "multipart/form-data" },
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
                 }
             );
-            setFormData((prev) => ({ ...prev, image: response.data.url }));
-            alert("Image uploaded successfully!");
-        } catch (err) {
-            alert("Failed to upload image.");
+            console.log(response.data)
+
+            if (response.status === 200) {
+                const fileUrl = response.data.urls[0]; // Accessing the correct key
+                setFormData((prev) => ({ ...prev, image: fileUrl }));
+                alert("Image uploaded successfully!");
+            } else {
+                alert(`Failed to upload image: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error("Error during image upload:", error);
+            alert("An error occurred while uploading the image.");
         }
     };
 
@@ -234,6 +270,7 @@ const AddRecipe = () => {
         try {
             const response = await axios.post ("http://localhost:8084/api/v1/recipes", {
                 ...formData,
+                countries: formData.countries.map((countryId) => ({ id: countryId })),
                 recipediets: formData.recipediets.map((dietId) => ({ dietid: dietId })),
             });
             alert("Recipe added successfully!");
