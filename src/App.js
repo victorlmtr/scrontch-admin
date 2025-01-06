@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AdminDashboard from "./AdminDashboard";
 import RecipeDetail from "./RecipeDetail";
 import AddRecipe from "./AddRecipe";
+import EditRecipe from "./EditRecipe";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const App = () => {
@@ -13,6 +14,8 @@ const App = () => {
                     <Route path="/" element={<AdminDashboard />} />
                     <Route path="/recipes/:id" element={<RecipeDetail />} />
                     <Route path="/add-recipe" element={<AddRecipe />} /> {/* New route */}
+                    <Route path="/edit-recipe/:id" element={<EditRecipe />} /> {/* New route */}
+
                 </Routes>
             </div>
         </Router>

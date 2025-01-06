@@ -24,7 +24,10 @@ const AdminDashboard = () => {
                         >
                             Add New Recipe
                         </button>
-                        <RecipesTab onViewRecipe={(id) => navigate(`/recipes/${id}`)} />
+                        <RecipesTab
+                            onViewRecipe={(id) => navigate("/recipes/${id}")}
+                            onEditRecipe={(id) => navigate("/edit-recipe/${id}")}
+                        />
                     </div>
                 );
             case "users":

@@ -22,6 +22,18 @@ const RecipesTab = ({ onViewRecipe }) => {
     fetchRecipes();
   }, []);
 
+  const deleteRecipe = async (id) => {
+    const confirmed = window.confirm("Are you sure you want to delete this recipe?");
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`http://localhost:8084/api/v1/recipes/${id}`);
+      setRecipes((prevRecipes) => prevRecipes.filter((recipe) => recipe.id !== id));
+    } catch (err) {
+      alert("Error deleting recipe: " + err.message);
+    }
+  };
+
   if (loading) return <div>Loading recipes...</div>;
   if (error) return <div>Error fetching recipes: {error.message}</div>;
 
@@ -52,6 +64,12 @@ const RecipesTab = ({ onViewRecipe }) => {
                 <td>{recipe.typeid?.typename || "N/A"}</td>
                 <td>
                   <button onClick={() => onViewRecipe(recipe.id)}>View</button>
+                  <button onClick={() => onEditRecipe(recipe.id)} style={{marginLeft: "8px"}}>
+                    Edit
+                  </button>
+                  <button onClick={() => deleteRecipe(recipe.id)} style={{marginLeft: "8px", color: "red"}}>
+                    Delete
+                  </button>
                 </td>
               </tr>
           ))}
