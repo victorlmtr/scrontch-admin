@@ -44,8 +44,8 @@ const EditRecipe = () => {
     };
     const [showStepForm, setShowStepForm] = useState(false);
     const handleAddIngredient = () => {
-        setIngredients([...ingredients, newIngredient]); // Add new ingredient
-        setNewIngredient({ name: "", quantity: "" }); // Clear the form
+        setIngredients([...ingredients, newIngredient]);
+        setNewIngredient({ name: "", quantity: "" });
     };
 
     const [newIngredient, setNewIngredient] = useState({ name: "", quantity: "" }); // Define newIngredient state
@@ -56,7 +56,7 @@ const EditRecipe = () => {
             try {
                 const ingredientResponse = await axios.get("http://localhost:8084/api/v1/ingredients");
                 setIngredients(ingredientResponse.data);
-                setFilteredIngredients(ingredientResponse.data); // Initialize filtered list
+                setFilteredIngredients(ingredientResponse.data);
             } catch (err) {
                 console.error("Failed to fetch ingredients:", err);
             }
@@ -339,9 +339,9 @@ const EditRecipe = () => {
                         <div key={step.id} className="border p-3 mb-2">
                             <h5>{step.title}</h5>
                             <p><strong>Order:</strong> {step.order}
-                            </p> {/* Assuming step.order holds the order number */}
+                            </p>
                             <p><strong>Length:</strong> {step.length} minutes</p>
-                            <p>{step.description}</p> {/* Assuming step.description holds the step's instructions */}
+                            <p>{step.description}</p> {}
                             {step.image && (
                                 <img
                                     src={step.image}
@@ -352,14 +352,14 @@ const EditRecipe = () => {
                             <button
                                 type="button"
                                 className="btn btn-warning me-2"
-                                onClick={() => handleEditStep(step.id)} // Use step.id for editing
+                                onClick={() => handleEditStep(step.id)}
                             >
                                 Edit
                             </button>
                             <button
                                 type="button"
                                 className="btn btn-danger"
-                                onClick={() => handleDeleteStep(step.id)} // Use step.id for deleting
+                                onClick={() => handleDeleteStep(step.id)}
                             >
                                 Delete
                             </button>
@@ -379,15 +379,15 @@ const EditRecipe = () => {
                             setStepData((prev) => ({...prev, image: reader.result}));
                         if (file) reader.readAsDataURL(file);
                     }}
-                    handleAddIngredient={handleAddIngredient} // Pass the function down
+                    handleAddIngredient={handleAddIngredient}
                     handleAddStep={handleAddOrUpdateStep}
                     showStepForm={showStepForm}
                     setShowStepForm={setShowStepForm}
-                    ingredientSearch={ingredientSearch} // Pass the correct prop
+                    ingredientSearch={ingredientSearch}
                     filteredIngredients={filteredIngredients}
-                    handleIngredientSearch={handleIngredientSearch} // Pass the function down
-                    newIngredient={newIngredient} // Pass newIngredient down
-                    setNewIngredient={setNewIngredient} // Pass setter down
+                    handleIngredientSearch={handleIngredientSearch}
+                    newIngredient={newIngredient}
+                    setNewIngredient={setNewIngredient}
                 />
 
                 <button type="submit" className="btn btn-primary">
