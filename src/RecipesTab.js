@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-const RecipesTab = ({ onViewRecipe }) => {
+
+const RecipesTab = () => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -63,11 +64,20 @@ const RecipesTab = ({ onViewRecipe }) => {
                 <td>{recipe.portions}</td>
                 <td>{recipe.typeid?.typename || "N/A"}</td>
                 <td>
-                  <button onClick={() => onViewRecipe(recipe.id)}>View</button>
-                  <button onClick={() => onEditRecipe(recipe.id)} style={{marginLeft: "8px"}}>
+                  <Link to={`/recipes/${recipe.id}`} className="btn">
+                    View
+                  </Link>
+                  <Link
+                      to={`/recipes/${recipe.id}/edit`}
+                      className="btn"
+                      style={{marginLeft: "8px"}}
+                  >
                     Edit
-                  </button>
-                  <button onClick={() => deleteRecipe(recipe.id)} style={{marginLeft: "8px", color: "red"}}>
+                  </Link>
+                  <button
+                      onClick={() => deleteRecipe(recipe.id)}
+                      style={{marginLeft: "8px", color: "red"}}
+                  >
                     Delete
                   </button>
                 </td>

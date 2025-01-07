@@ -1,7 +1,19 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const StepForm = ({ stepData, handleStepInputChange, handleStepImageUpload, handleAddIngredient, ingredientSearchTerm, handleIngredientSearchChange, filteredIngredients, newIngredient, setNewIngredient, handleAddStep, showStepForm, setShowStepForm }) => {
+const StepForm = ({
+                      stepData,
+                      handleStepInputChange,
+                      handleStepImageUpload,
+                      handleAddIngredient,
+                      ingredientSearchTerm,
+                      handleIngredientSearchChange,
+                      filteredIngredients,
+                      newIngredient,
+                      setNewIngredient,
+                      handleAddStep,
+                      showStepForm,
+                      setShowStepForm }) => {
     const [units, setUnits] = useState([]);
     const [preparationMethods, setPreparationMethods] = useState([]);
     const [newUnitName, setNewUnitName] = useState("");
